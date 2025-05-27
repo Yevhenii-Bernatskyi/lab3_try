@@ -11,15 +11,15 @@ import androidx.room.PrimaryKey
         entity = Track::class,
         parentColumns = ["id"],
         childColumns = ["trackId"],
-        onDelete = ForeignKey.CASCADE // Якщо трек видаляється, видаляються і всі його точки
+        onDelete = ForeignKey.CASCADE
     )],
-    indices = [Index(value = ["trackId"])] // Індекс для швидшого пошуку точок за trackId
+    indices = [Index(value = ["trackId"])]
 )
 data class LocationPoint(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val trackId: Long, // Зовнішній ключ до таблиці tracks
+    val trackId: Long,
     val latitude: Double,
     val longitude: Double,
-    val timestamp: Long // Час отримання цієї точки у мілісекундах
+    val timestamp: Long
 )

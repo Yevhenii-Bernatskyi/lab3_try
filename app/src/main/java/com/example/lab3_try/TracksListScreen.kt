@@ -20,12 +20,12 @@ import java.util.*
 @Composable
 fun TracksListScreen(
     tracksViewModel: TracksViewModel = viewModel(),
-    onTrackSelected: (Track) -> Unit, // Колбек при виборі треку
-    onDismiss: () -> Unit // Колбек для закриття (якщо це діалог)
+    onTrackSelected: (Track) -> Unit,
+    onDismiss: () -> Unit
 ) {
     val tracksList by tracksViewModel.allTracks.observeAsState(initial = emptyList())
 
-    Surface(modifier = Modifier.fillMaxSize()) { // Можна використовувати AlertDialog або інший контейнер
+    Surface(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

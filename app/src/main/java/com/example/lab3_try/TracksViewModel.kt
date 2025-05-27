@@ -17,11 +17,11 @@ class TracksViewModel(application: Application) : AndroidViewModel(application) 
 
     val allTracks: LiveData<List<Track>> = trackDao.getAllTracks()
 
-    // LiveData для точок вибраного треку
+
     private val _selectedTrackPoints = MutableLiveData<List<LocationPoint>>()
     val selectedTrackPoints: LiveData<List<LocationPoint>> get() = _selectedTrackPoints
 
-    // LiveData для вибраного треку (якщо потрібно передати дані про сам трек)
+
     private val _selectedTrack = MutableLiveData<Track?>()
     val selectedTrack: LiveData<Track?> get() = _selectedTrack
 
@@ -39,7 +39,7 @@ class TracksViewModel(application: Application) : AndroidViewModel(application) 
 
     fun deleteTrack(track: Track) {
         viewModelScope.launch {
-            // Room сам обробить видалення LocationPoint через onDelete = ForeignKey.CASCADE
+
             trackDao.deleteTrackById(track.id)
         }
     }

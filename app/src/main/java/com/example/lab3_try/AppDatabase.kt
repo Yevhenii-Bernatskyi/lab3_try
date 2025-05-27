@@ -12,23 +12,19 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun locationPointDao(): LocationPointDao
 
     companion object {
-        @Volatile // Значення цієї змінної ніколи не кешується, всі записи і читання йдуть з/в головну пам'ять
+        @Volatile
         private var INSTANCE: AppDatabase? = null
 
         fun getDatabase(context: Context): AppDatabase {
-            // Якщо INSTANCE не null, повертаємо його.
-            // Якщо null, створюємо базу даних у synchronized блоці.
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "location_tracker_db" // Назва файлу бази даних
+                    "location_tracker_db"
                 )
-                    // .fallbackToDestructiveMigration() // Для простоти під час розробки, якщо змінюєш схему.
-                    // У продакшені потрібно реалізовувати міграції.
+
                     .build()
                 INSTANCE = instance
-                // Повертаємо instance
                 instance
             }
         }

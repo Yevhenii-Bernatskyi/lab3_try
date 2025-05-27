@@ -33,9 +33,6 @@ class LocationService : LifecycleService() {
         const val NOTIFICATION_ID = 1
 
         val isTracking = MutableLiveData<Boolean>()
-        // Цей LiveData можна використовувати для відображення поточного шляху на карті в MainActivity
-        // Але для простоти ми будемо завантажувати точки з БД при відображенні
-        // val currentPathPoints = MutableLiveData<MutableList<android.location.Location>>()
     }
 
     private var isServiceStarted = false
@@ -57,10 +54,10 @@ class LocationService : LifecycleService() {
                                 trackId = currentTrackId,
                                 latitude = location.latitude,
                                 longitude = location.longitude,
-                                timestamp = System.currentTimeMillis() // Або location.time
+                                timestamp = System.currentTimeMillis()
                             )
                             db.locationPointDao().insertPoint(point)
-                            // currentPathPoints.value?.apply { add(location); currentPathPoints.postValue(this) }
+
                         }
                     }
                 }
@@ -73,8 +70,7 @@ class LocationService : LifecycleService() {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         db = AppDatabase.getDatabase(applicationContext)
-        isTracking.postValue(false) // Початковий стан
-        // currentPathPoints.postValue(mutableListOf())
+        isTracking.postValue(false)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -94,13 +90,11 @@ class LocationService : LifecycleService() {
                     Log.d("LocationService", "Зупинка відстеження...")
                     stopLocationUpdates()
                     isTracking.postValue(false)
-                    isServiceStarted = false // Дозволити повторний старт
-                    // Не зупиняємо сервіс відразу, якщо MainActivity ще може до нього звертатись
-                    // stopSelf() // Розглянути, коли саме зупиняти сервіс
+                    isServiceStarted = false
                 }
             }
         }
-        return START_NOT_STICKY // Або START_REDELIVER_INTENT, або START_STICKY залежно від потреби
+        return START_NOT_STICKY
     }
 
     private fun startLocationUpdates() {
@@ -108,7 +102,6 @@ class LocationService : LifecycleService() {
             ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.e("LocationService", "Дозвіл на місцезнаходження не надано.")
             isTracking.postValue(false)
-            // В ідеалі, сервіс не мав би стартувати без дозволів. Ця перевірка тут для безпеки.
             return
         }
 
@@ -122,9 +115,9 @@ class LocationService : LifecycleService() {
             Log.d("LocationService", "Створено новий трек з ID: $currentTrackId")
         }
 
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000L) // Інтервал 5 секунд
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000L)
             .setWaitForAccurateLocation(false)
-            .setMinUpdateIntervalMillis(500L) // Мінімальний інтервал 2 секунди
+            .setMinUpdateIntervalMillis(500L)
             .build()
 
         try {
@@ -147,11 +140,10 @@ class LocationService : LifecycleService() {
             lifecycleScope.launch {
                 db.trackDao().updateTrackEndTime(currentTrackId, System.currentTimeMillis())
                 Log.d("LocationService", "Оновлено час закінчення для треку ID: $currentTrackId")
-                currentTrackId = -1L // Скидаємо ID поточного треку
+                currentTrackId = -1L
             }
         }
-        stopForeground(true) // Зупинити Foreground режим, але сервіс може продовжити жити
-        // stopSelf() // Якщо сервіс більше не потрібен зовсім
+        stopForeground(true)
     }
 
     private fun startForegroundServiceWithNotification() {
@@ -165,10 +157,7 @@ class LocationService : LifecycleService() {
         }
         val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, pendingIntentFlags)
 
-        // Потрібно вказати іконку для сповіщення. Створи її в res/drawable
-        // Наприклад, ic_location_on.xml (векторна) або png файл
-        // Якщо поки немає, використай стандартну іконку додатка
-        val notificationIcon = R.drawable.ic_stat_location // ЗАМІНИ на свою іконку
+        val notificationIcon = R.drawable.ic_stat_location
 
         val notification = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setContentTitle("Відстеження треку")
@@ -186,7 +175,7 @@ class LocationService : LifecycleService() {
             val channel = NotificationChannel(
                 NOTIFICATION_CHANNEL_ID,
                 NOTIFICATION_CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_LOW // Важливість для Foreground Service
+                NotificationManager.IMPORTANCE_LOW
             )
             notificationManager.createNotificationChannel(channel)
         }
@@ -195,8 +184,8 @@ class LocationService : LifecycleService() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d("LocationService", "Сервіс знищено.")
-        if (isTracking.value == true) { // Якщо сервіс знищується, а трекінг все ще активний
-            stopLocationUpdates() // Коректно завершити запис треку
+        if (isTracking.value == true) {
+            stopLocationUpdates()
         }
     }
 }

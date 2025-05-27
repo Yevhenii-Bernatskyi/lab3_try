@@ -27,7 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import com.example.lab3_try.ui.theme.Lab3_tryTheme // Твоя тема
+import com.example.lab3_try.ui.theme.Lab3_tryTheme
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -60,23 +60,21 @@ class MainActivity : ComponentActivity() {
                 Log.d("MainActivity", "Всі запитані дозволи надано")
             } else {
                 Log.w("MainActivity", "Не всі запитані дозволи надано. Користувач має надати їх вручну.")
-                // Тут можна показати Snackbar або діалог з проханням надати дозволи в налаштуваннях
             }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge() // Залишаємо твій виклик
+        enableEdgeToEdge()
 
-        // Ініціалізація OSMDroid (робити перед setContentView або використанням MapView)
         Configuration.getInstance().load(applicationContext, getSharedPreferences("osmdroid", MODE_PRIVATE))
 
         setContent {
-            Lab3_tryTheme { // Використовуємо твою тему
+            Lab3_tryTheme {
                 LocationTrackerScreen()
             }
         }
-        checkAndRequestPermissions() // Запит дозволів при старті
+        checkAndRequestPermissions()
     }
 
     private fun checkAndRequestPermissions() {
@@ -91,8 +89,8 @@ class MainActivity : ComponentActivity() {
                 permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
-        // Для Android 14 (API 34) і вище для Foreground Service типу location
-        if (Build.VERSION.SDK_INT >= 34) { // Build.VERSION_CODES.UPSIDE_DOWN_CAKE наразі може не бути в стабільній версії SDK
+
+        if (Build.VERSION.SDK_INT >= 34) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 permissionsToRequest.add(Manifest.permission.FOREGROUND_SERVICE_LOCATION)
             }
@@ -109,9 +107,7 @@ class MainActivity : ComponentActivity() {
     private fun sendCommandToService(action: String) {
         if (!arePermissionsSufficientForService()) {
             Log.w("MainActivity", "Спроба відправити команду сервісу без достатніх дозволів.")
-            checkAndRequestPermissions() // Запросити дозволи знову
-            // Можна показати Snackbar або Toast
-            // Toast.makeText(this, "Будь ласка, надайте необхідні дозволи для запуску сервісу", Toast.LENGTH_LONG).show()
+            checkAndRequestPermissions()
             return
         }
 
@@ -125,7 +121,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Перевіряє дозволи, необхідні саме для запуску LocationService
     private fun arePermissionsSufficientForService(): Boolean {
         val fineLocationGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
@@ -135,7 +130,7 @@ class MainActivity : ComponentActivity() {
             true
         }
 
-        val foregroundLocationGranted = if (Build.VERSION.SDK_INT >= 34) { // UPSIDE_DOWN_CAKE
+        val foregroundLocationGranted = if (Build.VERSION.SDK_INT >= 34) {
             ContextCompat.checkSelfPermission(this, Manifest.permission.FOREGROUND_SERVICE_LOCATION) == PackageManager.PERMISSION_GRANTED
         } else {
             true
@@ -157,17 +152,17 @@ class MainActivity : ComponentActivity() {
                 setTileSource(TileSourceFactory.MAPNIK)
                 setMultiTouchControls(true)
                 controller.setZoom(15.0)
-                val startPoint = GeoPoint(48.9226, 24.7111) // Івано-Франківськ
+                val startPoint = GeoPoint(48.9226, 24.7111)
                 controller.setCenter(startPoint)
             }
         }
 
-        var currentPolyline by remember { mutableStateOf<Polyline?>(null) } // Для малювання треку
+        var currentPolyline by remember { mutableStateOf<Polyline?>(null) }
 
-        // Стан для відображення діалогу зі списком треків
+
         var showTracksDialog by remember { mutableStateOf(false) }
 
-        // Спостерігаємо за вибраним треком з ViewModel
+
         val selectedTrackPoints by tracksViewModel.selectedTrackPoints.observeAsState()
 
         Scaffold(
@@ -196,9 +191,9 @@ class MainActivity : ComponentActivity() {
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     FloatingActionButton(onClick = {
-                        tracksViewModel.clearSelectedTrack() // Очистимо попередній вибраний трек на карті
-                        currentPolyline = drawPathOnMap(mapView, emptyList(), currentPolyline) // Очистимо карту
-                        showTracksDialog = true // Показати діалог
+                        tracksViewModel.clearSelectedTrack()
+                        currentPolyline = drawPathOnMap(mapView, emptyList(), currentPolyline)
+                        showTracksDialog = true
                     }) {
                         Icon(Icons.Filled.List, "Збережені треки")
                     }
@@ -209,15 +204,15 @@ class MainActivity : ComponentActivity() {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(contentPadding) // Відступи від Scaffold
-                    .padding(horizontal = 16.dp), // Горизонтальні відступи для всього контенту Column
+                    .padding(contentPadding)
+                    .padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // 1. Текст статусу (завжди зверху)
                 Text(
                     text = if (isTracking) "Запис треку: Активний" else "Запис треку: Зупинено",
                     style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(top = 16.dp) // Відступ зверху
+                    modifier = Modifier.padding(top = 16.dp)
                 )
 
                 // 2. Карта OSMDroid (фіксована висота)
@@ -233,9 +228,9 @@ class MainActivity : ComponentActivity() {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(400.dp) // Або твоє значення
+                        .height(400.dp)
                         .padding(vertical = 16.dp)
-                        .clipToBounds() // <--- ДОДАЙ ЦЕ
+                        .clipToBounds()
                 ) {
                     AndroidView(
                         factory = { mapView },
@@ -255,7 +250,7 @@ class MainActivity : ComponentActivity() {
                             context.startActivity(it)
                         }
                     },
-                    modifier = Modifier.padding(bottom = 16.dp) // Відступ знизу
+                    modifier = Modifier.padding(bottom = 16.dp)
                 ) {
                     Text("Налаштування дозволів")
                 }
@@ -263,30 +258,25 @@ class MainActivity : ComponentActivity() {
         }
 
         if (showTracksDialog) {
-            Dialog(onDismissRequest = { showTracksDialog = false }) { // Dialog замість AlertDialog для більшої гнучкості
+            Dialog(onDismissRequest = { showTracksDialog = false }) {
                 TracksListScreen(
                     tracksViewModel = tracksViewModel,
                     onTrackSelected = { track ->
                         tracksViewModel.loadTrackPoints(track.id)
-                        showTracksDialog = false // Закрити діалог після вибору
+                        showTracksDialog = false
                     },
                     onDismiss = { showTracksDialog = false }
                 )
             }
         }
 
-        // Ефект для малювання вибраного треку на карті
         LaunchedEffect(selectedTrackPoints) {
             selectedTrackPoints?.let { points ->
                 val geoPoints = points.map { GeoPoint(it.latitude, it.longitude) }
                 currentPolyline = drawPathOnMap(mapView, geoPoints, currentPolyline)
                 if (geoPoints.isNotEmpty()) {
-                    // Опціонально: перемістити карту, щоб показати весь трек
-                    // mapView.zoomToBoundingBox(BoundingBox.fromGeoPoints(geoPoints), true, 100)
-                    // Або просто до першої точки
                     mapView.controller.animateTo(geoPoints.first())
                 } else {
-                    // Якщо точок немає (наприклад, трек очищено), прибираємо лінію
                     currentPolyline = drawPathOnMap(mapView, emptyList(), currentPolyline)
                 }
             }
@@ -305,19 +295,16 @@ class MainActivity : ComponentActivity() {
         oldPolyline?.let { map.overlays.remove(it); map.invalidate() }
 
         if (geoPoints.size < 2) {
-            // Якщо стара лінія була, але нових точок немає, просто повертаємо null,
-            // стара лінія вже видалена.
             return null
         }
 
         val newPolyline = Polyline()
         newPolyline.setPoints(geoPoints)
-        // Встанови колір та товщину перед додаванням на карту
-        newPolyline.outlinePaint.color = android.graphics.Color.RED // Використовуй android.graphics.Color
+        newPolyline.outlinePaint.color = android.graphics.Color.RED
         newPolyline.outlinePaint.strokeWidth = 8f
 
         map.overlays.add(newPolyline)
-        map.invalidate() // Перемалювати карту
+        map.invalidate()
         return newPolyline
     }
 }
